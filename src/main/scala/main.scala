@@ -37,22 +37,34 @@ object main extends App {
   private var ipAddrMap: Map[String, Int] = Map()
   private var loginMap: Map[String, Int] = Map()
 
+  // .r - преобразование строки в экземпляр класса Regex
   private val regex = """.*:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3}).*""".r
+  // .unanchored - чтобы не вся стройка соответствовала регулярному выражению
   private val regexLogin = """\?login=(\w*)&""".r.unanchored
 
+  // Scala не содержит концепции оператора break (в версиях выше 2.8),
+  // вместо оператора break используется соответствующий метод,
+  // который импортируется из пакета scala.util.control.Breaks._
+
+  // breakable определяет зону, в которой будет вызван метод break
   breakable {
     for (line <- buffSource.getLines) {
-//      println(line)
       strNum += 1
-      // TODO: для подчета использовать мультимножества
-      //  (вроде как сделал это)
+      // match - Сопоставление с примером (Pattern matching)
+      // (аналог switch в java)
       line match {
+        // При вызове regexLogin и regex, внутри них вызывается метод unapply,
+        // который принимает строку и пытается извлечь и вернуть строку,
+        // соответствующую регулярному выражению
         case regexLogin(login) =>
           loginMap = this.inc(loginMap, login)
+        // Используя круглые скобки можно объединять сразу несколько групп регулярных выражений
+        // Соответственно будет извлечено столько параметров, сколько указано групп
         case regex(ip1, ip2, ip3, ip4) =>
           val ipAddr = ip1 + '.' + ip2 + '.' + ip3 + '.' + ip4
           ipAddrMap = this.inc(ipAddrMap, ipAddr)
-        case _ =>
+        // если не удалось сопоставить ни одно значение с существующими case'ми...
+        case _ => // ничего не делаем
       }
       if (strNum == strCount) {
         break
