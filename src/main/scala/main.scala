@@ -28,11 +28,29 @@ object main extends App {
     }
   }
 
-  private val filename = "flask.log"
-  private val buffSource = Source.fromFile(filename)
+  /**
+   * Записать данные из коллекции map в файл с указанием кол-ва обработанных строк
+   */
+  private def writeToFile(map: Map[String, Int], filename: String, strCount: Int, label: String): Unit = {
+    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename, true)))
+    writer.write("Кол-во читемых строк: " + strCount + "\n")
+    writer.write("--------------------------------------------------------------\n")
+    for ((k, v) <- map) writer.write(s"$label: $k, Кол-во вхождений: $v\n")
+    writer.write("\n\n")
+    writer.close()
+  }
+
+  private var filename = "flask.log"
+  private var filenameRes = "results.txt"
   private val MAX_COUNT = 11614694
   private val strCount = MAX_COUNT  // max кол-во выводимых строк из входного файла
   private var strNum = 0 // для остановки чтения файла
+
+  if (args.length != 0) {
+    filename = args(0)
+    filenameRes = args(1)
+  }
+  private val buffSource = Source.fromFile(filename)
 
   private var ipAddrMap: Map[String, Int] = Map()
   private var loginMap: Map[String, Int] = Map()
@@ -48,7 +66,7 @@ object main extends App {
 
   // breakable определяет зону, в которой будет вызван метод break
   breakable {
-    for (line <- buffSource.getLines) {
+    for (line <- buffSource.getLines()) {
       strNum += 1
       // match - Сопоставление с примером (Pattern matching)
       // (аналог switch в java)
@@ -73,11 +91,6 @@ object main extends App {
   }
   buffSource.close
 
-  private val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("results.txt")))
-  writer.write("Кол-во читемых строк: " + strCount + "\n")
-  writer.write("--------------------------------------------------------------\n")
-  for ((k, v) <- ipAddrMap) writer.write(s"ip-адрес: $k, Кол-во вхождений: $v\n")
-  writer.write("--------------------------------------------------------------\n")
-  for ((k, v) <- loginMap) writer.write(s"login: $k, Кол-во вхождений: $v\n")
-  writer.close()
+  this.writeToFile(loginMap, filenameRes, strCount, "login")
+  this.writeToFile(ipAddrMap, filenameRes, strCount, "ip-адрес")
 }
