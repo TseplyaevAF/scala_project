@@ -9,14 +9,28 @@
 //}
 //
 //
-import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter}
+import java.io.{File, FileWriter, PrintWriter}
 import scala.io.Source
 import scala.util.control.Breaks._
 
 
 object main extends App {
   /**
-   * Задать кол-во повторений ключа key во множестве map
+   * Посчитать количество строк в файле
+   */
+  private def linesCount(f: java.io.File): Int = {
+    val src = io.Source.fromFile(f)
+    try {
+      src.getLines.size
+    } finally {
+      src.close()
+    }
+  }
+
+  /**
+   * Задать кол-во вхождений для строки
+   * @param map множество строк с кол-вом вхождений
+   * @param key строка, для которой задается кол-во вхождений
    */
   private def inc(map: Map[String, Int], key: String): Map[String, Int]  = {
     if (!map.contains(key)) {
@@ -29,11 +43,15 @@ object main extends App {
   }
 
   /**
-   * Записать данные из коллекции map в файл с указанием кол-ва обработанных строк
+   * Записать результаты в файл
+   * @param map множество строк с кол-вом вхождений
+   * @param filename файл для сохранения результатов
+   * @param strCount кол-во обработанных строк
+   * @param label метка для сущности
    */
   private def writeToFile(map: Map[String, Int], filename: String, strCount: Int, label: String): Unit = {
-    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename, true)))
-    writer.write("Кол-во читемых строк: " + strCount + "\n")
+    val writer = new PrintWriter(new FileWriter(new File(filename), true))
+    writer.write("Кол-во обработанных строк: " + strCount + "\n")
     writer.write("--------------------------------------------------------------\n")
     for ((k, v) <- map) writer.write(s"$label: $k, Кол-во вхождений: $v\n")
     writer.write("\n\n")
@@ -42,8 +60,8 @@ object main extends App {
 
   private var filename = "flask.log"
   private var filenameRes = "results.txt"
-  private val MAX_COUNT = 11614694
-  private val strCount = MAX_COUNT  // max кол-во выводимых строк из входного файла
+  private val MAX_COUNT = this.linesCount(new File(filename))
+  private val strCount = MAX_COUNT  // max кол-во читаемых строк из входного файла
   private var strNum = 0 // для остановки чтения файла
 
   if (args.length != 0) {
